@@ -1,78 +1,74 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sentiment Analysis</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
+
 <body class="bg-gray-100 min-h-screen flex items-center justify-center">
-    <div class="bg-white shadow-lg rounded-lg p-8 w-full max-w-md">
+    <div class="bg-white shadow-lg rounded-lg w-full max-w-md p-6">
         <h1 class="text-2xl font-bold text-center text-gray-800 mb-6">Sentiment Analysis</h1>
-        <form id="sentiment-form">
-            <textarea 
-                id="text-input" 
-                name="text" 
-                class="w-full border border-gray-300 rounded-lg p-4 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                rows="4"
-                placeholder="Enter your text here..."></textarea>
-            <button 
-                type="submit" 
-                class="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition">
+        <form id="sentimentForm" class="space-y-4">
+            <div>
+                <label for="text" class="block text-sm font-medium text-gray-700">Enter Text</label>
+                <textarea id="text" name="text" rows="4"
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    placeholder="Type your text here..."></textarea>
+            </div>
+            <button type="submit"
+                class="w-full bg-indigo-600 text-white font-medium py-2 px-4 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                 Analyze Sentiment
             </button>
         </form>
         <div id="result" class="mt-6 hidden">
-            <h2 class="text-lg font-semibold text-gray-700">Sentiment: <span id="sentiment"></span></h2>
-            <p class="text-gray-600 mt-2">
-                <strong>Confidence:</strong>
-                <ul id="confidence-list" class="mt-2"></ul>
-            </p>
+            <h2 class="text-xl font-bold text-gray-700">Analysis Result:</h2>
+            <p id="sentiment" class="text-lg mt-2"></p>
+            <p id="confidence" class="text-sm mt-1 text-gray-600"></p>
         </div>
     </div>
 
     <script>
-        const form = document.getElementById("sentiment-form");
-        const resultDiv = document.getElementById("result");
-        const sentimentSpan = document.getElementById("sentiment");
-        const confidenceList = document.getElementById("confidence-list");
+        const form = document.getElementById('sentimentForm');
+        const resultDiv = document.getElementById('result');
+        const sentimentText = document.getElementById('sentiment');
+        const confidenceText = document.getElementById('confidence');
 
-        form.addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const text = document.getElementById("text-input").value;
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
 
-            // แสดงข้อความ "Loading..."
-            sentimentSpan.textContent = "Loading...";
-            confidenceList.innerHTML = "";
+            const text = document.getElementById('text').value;
+
+            if (!text) {
+                alert('Please enter some text.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('text', text);
 
             try {
-                // ส่งคำขอไปยัง Flask API
-                const response = await fetch("http://127.0.0.1:5001/predict", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                    body: new URLSearchParams({ text: encodeURIComponent(text) }),  // เข้ารหัสข้อความ
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    body: formData,
                 });
 
-                if (!response.ok) {
-                    throw new Error(`HTTP Error: ${response.status}`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    sentimentText.textContent = `Sentiment: ${data.sentiment}`;
+                    confidenceText.textContent = `Confidence: Negative ${data.confidence.Negative}%, Neutral ${data.confidence.Neutral}%, Positive ${data.confidence.Positive}%`;
+                    resultDiv.classList.remove('hidden');
+                } else {
+                    alert(data.error || 'Something went wrong.');
                 }
-
-                const result = await response.json();
-
-                // อัปเดต UI ด้วยผลลัพธ์
-                sentimentSpan.textContent = result.sentiment;
-                confidenceList.innerHTML = `
-                    <li>Negative: ${result.confidence.Negative}%</li>
-                    <li>Neutral: ${result.confidence.Neutral}%</li>
-                    <li>Positive: ${result.confidence.Positive}%</li>
-                `;
-                resultDiv.classList.remove("hidden");
             } catch (error) {
-                sentimentSpan.textContent = "Error analyzing sentiment.";
-                confidenceList.innerHTML = `<li>${error.message}</li>`;
-                resultDiv.classList.remove("hidden");
+                alert('Failed to fetch the sentiment analysis.');
             }
         });
     </script>
 </body>
+
 </html>
