@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentiment Analysis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+    <div class="bg-white shadow-lg rounded-lg p-8 w-full max-w-md">
+        <h1 class="text-2xl font-bold text-center text-gray-800 mb-6">Sentiment Analysis</h1>
+        <form id="sentiment-form">
+            <textarea 
+                id="text-input" 
+                name="text" 
+                class="w-full border border-gray-300 rounded-lg p-4 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                rows="4"
+                placeholder="Enter your text here..."></textarea>
+            <button 
+                type="submit" 
+                class="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition">
+                Analyze Sentiment
+            </button>
+        </form>
+        <div id="result" class="mt-6 hidden">
+            <h2 class="text-lg font-semibold text-gray-700">Sentiment: <span id="sentiment"></span></h2>
+            <p class="text-gray-600 mt-2">
+                <strong>Confidence:</strong>
+                <ul id="confidence-list" class="mt-2"></ul>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById("sentiment-form");
+        const resultDiv = document.getElementById("result");
+        const sentimentSpan = document.getElementById("sentiment");
+        const confidenceList = document.getElementById("confidence-list");
+
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const text = document.getElementById("text-input").value;
+
+            // แสดงข้อความ "Loading..."
+            sentimentSpan.textContent = "Loading...";
+            confidenceList.innerHTML = "";
+
+            try {
+                // ส่งคำขอไปยัง Flask API
+                const response = await fetch("http://127.0.0.1:5001/predict", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    body: new URLSearchParams({ text: encodeURIComponent(text) }),  // เข้ารหัสข้อความ
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP Error: ${response.status}`);
+                }
+
+                const result = await response.json();
+
+                // อัปเดต UI ด้วยผลลัพธ์
+                sentimentSpan.textContent = result.sentiment;
+                confidenceList.innerHTML = `
+                    <li>Negative: ${result.confidence.Negative}%</li>
+                    <li>Neutral: ${result.confidence.Neutral}%</li>
+                    <li>Positive: ${result.confidence.Positive}%</li>
+                `;
+                resultDiv.classList.remove("hidden");
+            } catch (error) {
+                sentimentSpan.textContent = "Error analyzing sentiment.";
+                confidenceList.innerHTML = `<li>${error.message}</li>`;
+                resultDiv.classList.remove("hidden");
+            }
+        });
+    </script>
+</body>
+</html>
