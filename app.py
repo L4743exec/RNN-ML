@@ -1,19 +1,44 @@
 from flask import Flask, request, jsonify, render_template
-from flask_cors import CORS  # สำหรับจัดการ CORS
+from flask_cors import CORS
 import numpy as np
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 import pickle
 
 app = Flask(__name__)
-CORS(app)  # เปิดใช้งาน CORS ทั่วทั้งแอป
+CORS(app)
 
-# โหลดโมเดลและ Tokenizer
+# Load model and tokenizer
 model = load_model("sentiment_analysis_model.h5")
 with open("tokenizer.pkl", "rb") as handle:
     tokenizer = pickle.load(handle)
 
-MAX_LENGTH = 32  # ใช้ขนาดที่ตรงกับโมเดล
+MAX_LENGTH = 32
+
+def SentimentAnalysis(text):
+    try:
+        sentence = [text]
+        tokenized_sentence = tokenizer.texts_to_sequences(sentence)
+        input_sequence = pad_sequences(tokenized_sentence, maxlen=MAX_LENGTH, padding="pre")
+        prediction_ = model.predict(input_sequence)
+        prediction = prediction_.argmax()
+        
+        # Confidence calculation
+        confidence = {
+            "Negative": round(prediction_[0][0] * 100, 2),
+            "Neutral": round(prediction_[0][1] * 100, 2),
+            "Positive": round(prediction_[0][2] * 100, 2),
+        }
+        
+        # Sentiment assignment
+        sentiment = ["Negative", "Neutral", "Positive"][prediction]
+
+        return {
+            "sentiment": sentiment,
+            "confidence": confidence,
+        }
+    except Exception as e:
+        return {"error": str(e)}
 
 @app.route("/")
 def index():
@@ -22,30 +47,16 @@ def index():
 @app.route("/predict", methods=["POST"])
 def predict():
     try:
-        # ดึงข้อความที่ส่งมา
         text = request.form.get("text", "")
 
         if not text:
             return jsonify({"error": "No input text provided"}), 400
 
-        # แปลงข้อความเป็นลำดับ
-        tokenized_sentence = tokenizer.texts_to_sequences([text])
-        input_sequence = pad_sequences(tokenized_sentence, maxlen=MAX_LENGTH, padding="pre")
+        # Use the SentimentAnalysis function
+        result = SentimentAnalysis(text)
+        if "error" in result:
+            return jsonify({"error": result["error"]}), 500
 
-        # ทำนายผลลัพธ์
-        prediction_ = model.predict(input_sequence).tolist()[0]
-        prediction = int(np.argmax(prediction_))
-
-        # แปลงผลลัพธ์เป็นข้อความ
-        sentiment = ["Negative", "Neutral", "Positive"]
-        result = {
-            "sentiment": sentiment[prediction],
-            "confidence": {
-                "Negative": round(float(prediction_[0]) * 100, 2),
-                "Neutral": round(float(prediction_[1]) * 100, 2),
-                "Positive": round(float(prediction_[2]) * 100, 2),
-            },
-        }
         return jsonify(result)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
