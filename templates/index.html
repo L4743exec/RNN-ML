@@ -6,27 +6,46 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sentiment Analysis</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    animation: {
+                        fadeIn: "fadeIn 0.5s ease-in-out",
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: 0 },
+                            '100%': { opacity: 1 },
+                        },
+                    },
+                },
+            },
+        };
+    </script>
 </head>
 
-<body class="bg-gray-100 min-h-screen flex items-center justify-center">
-    <div class="bg-white shadow-lg rounded-lg w-full max-w-md p-6">
-        <h1 class="text-2xl font-bold text-center text-gray-800 mb-6">Sentiment Analysis</h1>
-        <form id="sentimentForm" class="space-y-4">
+<body class="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 min-h-screen flex items-center justify-center">
+    <div class="bg-white shadow-2xl rounded-lg w-full max-w-lg p-8 transform hover:scale-105 transition-transform duration-300">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-6 animate-fadeIn">Sentiment Analysis</h1>
+        <form id="sentimentForm" class="space-y-6">
             <div>
                 <label for="text" class="block text-sm font-medium text-gray-700">Enter Text</label>
                 <textarea id="text" name="text" rows="4"
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm placeholder-gray-400"
                     placeholder="Type your text here..."></textarea>
+                <p id="charCount" class="text-xs text-gray-500 mt-1 text-right">0 / 500</p>
             </div>
             <button type="submit"
-                class="w-full bg-indigo-600 text-white font-medium py-2 px-4 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                Analyze Sentiment
+                class="w-full bg-indigo-600 text-white font-medium py-2 px-4 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 flex items-center justify-center space-x-2">
+                <span>Analyze Sentiment</span>
+                <span id="loadingSpinner" class="hidden animate-spin border-2 border-white border-t-transparent rounded-full h-4 w-4"></span>
             </button>
         </form>
-        <div id="result" class="mt-6 hidden">
+        <div id="result" class="mt-8 hidden animate-fadeIn">
             <h2 class="text-xl font-bold text-gray-700">Analysis Result:</h2>
-            <p id="sentiment" class="text-lg mt-2"></p>
-            <p id="confidence" class="text-sm mt-1 text-gray-600"></p>
+            <p id="sentiment" class="text-lg mt-4 font-semibold"></p>
+            <p id="confidence" class="text-sm mt-2 text-gray-600"></p>
         </div>
     </div>
 
@@ -35,16 +54,38 @@
         const resultDiv = document.getElementById('result');
         const sentimentText = document.getElementById('sentiment');
         const confidenceText = document.getElementById('confidence');
+        const charCount = document.getElementById('charCount');
+        const textArea = document.getElementById('text');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+
+        // Live character count
+        textArea.addEventListener('input', () => {
+            const length = textArea.value.length;
+            charCount.textContent = `${length} / 500`;
+            if (length > 500) {
+                charCount.classList.add('text-red-500');
+            } else {
+                charCount.classList.remove('text-red-500');
+            }
+        });
 
         form.addEventListener('submit', async (event) => {
             event.preventDefault();
 
-            const text = document.getElementById('text').value;
+            const text = textArea.value;
 
             if (!text) {
                 alert('Please enter some text.');
                 return;
             }
+
+            if (text.length > 500) {
+                alert('Text exceeds the maximum allowed length of 500 characters.');
+                return;
+            }
+
+            // Show loading spinner
+            loadingSpinner.classList.remove('hidden');
 
             const formData = new FormData();
             formData.append('text', text);
@@ -66,6 +107,9 @@
                 }
             } catch (error) {
                 alert('Failed to fetch the sentiment analysis.');
+            } finally {
+                // Hide loading spinner
+                loadingSpinner.classList.add('hidden');
             }
         });
     </script>
