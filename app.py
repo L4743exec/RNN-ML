@@ -9,8 +9,8 @@ app = Flask(__name__)
 CORS(app)
 
 # Load model and tokenizer
-model = load_model("sentiment_analysis_model.h5")
-with open("tokenizer.pkl", "rb") as handle:
+model = load_model("RNN-ML/models/sentiment_analysis_model.h5")
+with open("RNN-ML/models/tokenizer.pkl", "rb") as handle:
     tokenizer = pickle.load(handle)
 
 MAX_LENGTH = 32
@@ -42,7 +42,7 @@ def SentimentAnalysis(text):
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    return render_template("RNN-ML/templates/index.html")
 
 @app.route("/predict", methods=["POST"])
 def predict():
