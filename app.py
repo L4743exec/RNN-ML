@@ -29,7 +29,7 @@ def SentimentAnalysis(text):
             "Neutral": round(prediction_[0][1] * 100, 2),
             "Positive": round(prediction_[0][2] * 100, 2),
         }
-        
+
         # Sentiment assignment
         sentiment = ["Negative", "Neutral", "Positive"][prediction]
 
