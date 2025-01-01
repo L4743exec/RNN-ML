@@ -71,7 +71,7 @@ def analyze_sentiment(text, language):
                 "Neutral": round(predictions[0][1] * 100, 2),
                 "Positive": round(predictions[0][2] * 100, 2),
             }
-            sentiment = ["Positive", "Neutral", "Negative"][prediction]
+            sentiment = ["Negative", "Neutral", "Positive"][prediction]
         else:
             return {"error": "Unsupported language"}
 
