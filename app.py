@@ -12,16 +12,16 @@ CORS(app)
 
 # Load English model and tokenizer
 try:
-    en_model = load_model(r"RNN-ML\models\en\sentiment_analysis_model.h5")
-    with open(r"RNN-ML\models\en\tokenizer.pkl", "rb") as en_handle:
+    en_model = load_model(r"models/en/sentiment_analysis_model.h5")
+    with open(r"models/en/tokenizer.pkl", "rb") as en_handle:
         en_tokenizer = pickle.load(en_handle)
 except Exception as e:
     raise RuntimeError(f"Error loading English model or tokenizer: {str(e)}")
 
 # Load Thai model and tokenizer
 try:
-    th_model = load_model(r"RNN-ML\models\th\model.keras")
-    with open(r"RNN-ML\models\th\tokenizer.pkl", "rb") as th_handle:
+    th_model = load_model(r"models/th/model.keras")
+    with open(r"models/th/tokenizer.pkl", "rb") as th_handle:
         th_tokenizer = pickle.load(th_handle)
     th_word_index = th_tokenizer.word_index  # Use word_index for Thai preprocessing
 except Exception as e:
@@ -98,7 +98,7 @@ def predict():
         if not text:
             return jsonify({"error": "No input text provided"}), 400
         if language not in ["en", "th"]:
-            return jsonify({"error": "Unsupported or missing language"}), 400
+            language = "en"
 
         # Perform sentiment analysis
         result = analyze_sentiment(text, language)
