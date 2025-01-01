@@ -12,16 +12,16 @@ CORS(app)
 
 # Load English model and tokenizer
 try:
-    en_model = load_model(r"C:\Users\lataeq\Code\RNN-ML\sentiment_analysis_model.h5")
-    with open(r"C:\Users\lataeq\Code\RNN-ML\data\tokenizer.pkl", "rb") as en_handle:
+    en_model = load_model(r"241-252\RNN-ML\models\en\sentiment_analysis_model.h5")
+    with open(r"241-252\RNN-ML\models\en\tokenizer.pkl", "rb") as en_handle:
         en_tokenizer = pickle.load(en_handle)
 except Exception as e:
     raise RuntimeError(f"Error loading English model or tokenizer: {str(e)}")
 
 # Load Thai model and tokenizer
 try:
-    th_model = load_model(r"C:\Users\lataeq\Code\rnn\RNN-ML\models\model.keras")
-    with open(r"C:\Users\lataeq\Code\rnn\RNN-ML\models\tokenizer.pkl", "rb") as th_handle:
+    th_model = load_model(r"241-252\RNN-ML\models\th\model.keras")
+    with open(r"241-252\RNN-ML\models\th\tokenizer.pkl", "rb") as th_handle:
         th_tokenizer = pickle.load(th_handle)
     th_word_index = th_tokenizer.word_index  # Use word_index for Thai preprocessing
 except Exception as e:
@@ -55,21 +55,28 @@ def analyze_sentiment(text, language):
         if language == "en":
             input_sequence = preprocess_english_text(text)
             predictions = en_model.predict(input_sequence)
+            prediction = predictions.argmax()
+            confidence = {
+                "Negative": round(predictions[0][0] * 100, 2),
+                "Neutral": round(predictions[0][1] * 100, 2),
+                "Positive": round(predictions[0][2] * 100, 2),
+            }
+            sentiment = ["Negative", "Neutral", "Positive"][prediction]
         elif language == "th":
             input_sequence = preprocess_thai_text(text)
             predictions = th_model.predict(input_sequence)
+            prediction = predictions.argmax()
+            confidence = {
+                "Negative": round(predictions[0][2] * 100, 2),
+                "Neutral": round(predictions[0][1] * 100, 2),
+                "Positive": round(predictions[0][0] * 100, 2),
+            }
+            sentiment = ["Positive", "Neutral", "Negative"][prediction]
         else:
             return {"error": "Unsupported language"}
 
         # Determine sentiment
-        prediction = predictions.argmax()
-        confidence = {
-            "Negative": round(predictions[0][2] * 100, 2),
-            "Neutral": round(predictions[0][1] * 100, 2),
-            "Positive": round(predictions[0][0] * 100, 2),
-        }
-        sentiment = ["Positive", "Neutral", "Negative"][prediction]
-
+        
         return {
             "sentiment": sentiment,
             "confidence": confidence,
@@ -80,7 +87,7 @@ def analyze_sentiment(text, language):
 # Routes
 @app.route("/")
 def index():
-    return render_template("index.html")  # Adjust index.html to include language selection
+    return render_template("index_en_th.html")  # Adjust index.html to include language selection
 
 @app.route("/predict", methods=["POST"])
 def predict():
