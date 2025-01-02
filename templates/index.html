@@ -26,45 +26,73 @@
     </script>
 </head>
 
-<body class="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 min-h-screen flex items-center justify-center relative overflow-hidden">
+<body class="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 dark:from-gray-900 dark:via-gray-800 dark:to-gray-700 min-h-screen flex items-center justify-center relative overflow-hidden">
+
+     <!-- Theme Toggle Button -->
+    <div class="absolute top-4 right-4">
+        <button id="themeToggle"
+            class="bg-gray-800 text-white dark:bg-gray-200 dark:text-gray-800 px-4 py-2 rounded-md shadow-md hover:bg-gray-700 dark:hover:bg-gray-300 transition">
+            Toggle Theme 🌗
+        </button>
+    </div>
     <!-- Particle Background -->
     <div id="tsparticles" class="absolute inset-0 -z-10"></div>
 
     <!-- Main Content -->
-    <div class="bg-white shadow-2xl rounded-lg w-full max-w-lg p-8 transform hover:scale-105 transition-transform duration-300">
-        <h1 class="text-3xl font-bold text-center text-gray-800 mb-6 animate-fadeIn">Sentiment Analysis</h1>
+    <div class="bg-white dark:bg-gray-800 shadow-2xl rounded-lg w-full max-w-lg p-8 transform hover:scale-105 transition-transform duration-300">
+        <h1 class="text-3xl font-bold text-center text-gray-800 dark:text-gray-200 mb-6 animate-fadeIn">Sentiment Analysis</h1>
+        
         <form id="sentimentForm" class="space-y-6">
             <div>
-                <label for="language" class="block text-sm font-medium text-gray-700">Select Language</label>
+                <label for="language" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Select Language</label>
                 <select id="language" name="language"
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm dark:bg-gray-700 dark:text-gray-200">
                     <option value="en">English</option>
                     <option value="th">Thai</option>
                 </select>
             </div>
+            
             <div>
-                <label for="text" class="block text-sm font-medium text-gray-700">Enter Text</label>
+                <label for="text" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Enter Text</label>
                 <textarea id="text" name="text" rows="4"
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm placeholder-gray-400"
+                    class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm placeholder-gray-400 dark:bg-gray-700 dark:text-gray-200"
                     placeholder="Type your text here..."></textarea>
-                <p id="charCount" class="text-xs text-gray-500 mt-1 text-right">0 / 500</p>
+                <p id="charCount" class="text-xs text-gray-500 dark:text-gray-400 mt-1 text-right">0 / 500</p>
             </div>
+            
             <button type="submit"
-                class="w-full bg-indigo-600 text-white font-medium py-2 px-4 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 flex items-center justify-center space-x-2">
+                class="w-full bg-indigo-600 text-white font-medium py-2 px-4 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800 flex items-center justify-center space-x-2">
                 <span>Analyze Sentiment</span>
                 <span id="loadingSpinner" class="hidden animate-spin border-2 border-white border-t-transparent rounded-full h-4 w-4"></span>
             </button>
         </form>
+        
         <div id="result" class="mt-8 hidden animate-fadeIn">
-            <h2 class="text-xl font-bold text-gray-700">Analysis Result:</h2>
-            <p id="sentiment" class="text-lg mt-4 font-semibold"></p>
-            <p id="confidence" class="text-sm mt-2 text-gray-600"></p>
+            <h2 class="text-xl font-bold text-gray-700 dark:text-gray-300">Analysis Result:</h2>
+            <p id="sentiment" class="text-lg mt-4 font-semibold dark:text-gray-200"></p>
+            <p id="confidence" class="text-sm mt-2 text-gray-600 dark:text-gray-400"></p>
             <div id="barChart" class="mt-6 space-y-2"></div>
         </div>
     </div>
 
     <!-- Particle Animation -->
     <script>
+        // Theme Toggle Logic
+        const themeToggle = document.getElementById('themeToggle');
+        const html = document.documentElement;
+
+        // ตรวจสอบธีมจาก Local Storage
+        if (localStorage.getItem('theme') === 'dark') {
+            html.classList.add('dark');
+        }
+
+        // ฟังก์ชันสลับธีม
+        themeToggle.addEventListener('click', () => {
+            html.classList.toggle('dark');
+            const isDarkMode = html.classList.contains('dark');
+            localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+        });
+
         window.onload = () => {
             tsParticles.load("tsparticles", {
                 particles: {
@@ -184,7 +212,7 @@
 
                 const label = document.createElement('span');
                 label.textContent = sentiment;
-                label.className = 'w-24 text-sm font-medium text-gray-700';
+                label.className = 'w-24 text-sm font-medium text-gray-700 dark:text-gray-300';
 
                 const barWrapper = document.createElement('div');
                 barWrapper.className = 'flex-1 bg-gray-200 rounded-lg overflow-hidden h-6 ml-4 relative';
@@ -211,8 +239,24 @@
                 }, index * 200); // Stagger animation for each bar
             });
         }
+        tailwind.config = {
+        darkMode: 'class', // เปิดใช้งาน dark mode
+        theme: {
+            extend: {
+                animation: {
+                    fadeIn: "fadeIn 0.5s ease-in-out",
+                },
+                keyframes: {
+                    fadeIn: {
+                        '0%': { opacity: 0 },
+                        '100%': { opacity: 1 },
+                    },
+                },
+            },
+        },
+    };
 
-    </script>
+    </script>   
 </body>
 
 </html>
