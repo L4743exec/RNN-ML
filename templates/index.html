@@ -115,12 +115,11 @@
                 event.preventDefault();
                 form.requestSubmit(); // Trigger form submission
             }
-            charCount.classList.toggle('text-red-500', length > 500);
-
         });
 
         form.addEventListener('submit', async (event) => {
             event.preventDefault();
+
             const text = textArea.value;
             const language = languageSelect.value;
 
@@ -128,11 +127,9 @@
                 alert('Please enter some text.');
                 return;
             }
+
             if (text.length > 500) {
                 alert('Text exceeds the maximum limit of 500 characters.');
-
-            if (!text || text.length > 500) {
-                alert('Please enter valid text (max 500 characters).');
                 return;
             }
 
@@ -146,6 +143,7 @@
                 });
 
                 const result = await response.json();
+
                 if (response.ok) {
                     sentimentText.textContent = `Sentiment: ${result.sentiment}`;
                     confidenceText.textContent = `Confidence: Positive: ${result.confidence.Positive}% | Neutral: ${result.confidence.Neutral}% | Negative: ${result.confidence.Negative}%`;
@@ -159,7 +157,7 @@
             } finally {
                 loadingSpinner.classList.add('hidden');
             }
-        }});
+        });
 
         function renderBarChart(confidence) {
             const barChartContainer = document.getElementById('barChart');
@@ -167,7 +165,6 @@
             const sentiments = ['Positive', 'Neutral', 'Negative'];
             barChartContainer.innerHTML = ''; // Clear any existing bars
             // Create bars for Positive, Neutral, and Negative
-
 
             sentiments.forEach((sentiment, index) => {
                 const bar = document.createElement('div');

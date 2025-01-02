@@ -73,9 +73,7 @@ def analyze_sentiment(text, language):
             sentiment = ["Positive", "Neutral", "Negative"][prediction]
         else:
             return {"error": "Unsupported language"}
-
         # Determine sentiment
-        
         return {
             "sentiment": sentiment,
             "confidence": confidence,
