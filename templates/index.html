@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sentiment Analysis with Particles</title>
+    <title>Sentiment Analysis</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/tsparticles@2.11.1/tsparticles.bundle.min.js"></script>
     <script>
@@ -104,13 +104,32 @@
         textArea.addEventListener('input', () => {
             const length = textArea.value.length;
             charCount.textContent = `${length} / 500`;
+            if (length > 500) {
+                charCount.classList.add('text-red-500');
+            } else {
+                charCount.classList.remove('text-red-500');
+            }
+        });
+        textArea.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                form.requestSubmit(); // Trigger form submission
+            }
             charCount.classList.toggle('text-red-500', length > 500);
+
         });
 
         form.addEventListener('submit', async (event) => {
             event.preventDefault();
             const text = textArea.value;
             const language = languageSelect.value;
+
+            if (!text) {
+                alert('Please enter some text.');
+                return;
+            }
+            if (text.length > 500) {
+                alert('Text exceeds the maximum limit of 500 characters.');
 
             if (!text || text.length > 500) {
                 alert('Please enter valid text (max 500 characters).');
@@ -140,18 +159,22 @@
             } finally {
                 loadingSpinner.classList.add('hidden');
             }
-        });
+        }});
 
         function renderBarChart(confidence) {
             const barChartContainer = document.getElementById('barChart');
             barChartContainer.innerHTML = '';
             const sentiments = ['Positive', 'Neutral', 'Negative'];
+            barChartContainer.innerHTML = ''; // Clear any existing bars
+            // Create bars for Positive, Neutral, and Negative
+
 
             sentiments.forEach((sentiment, index) => {
                 const bar = document.createElement('div');
                 bar.className = 'flex items-center';
 
                 const label = document.createElement('span');
+                label.textContent = `${sentiment}`;
                 label.textContent = sentiment;
                 label.className = 'w-24 text-sm font-medium text-gray-700';
 
@@ -159,6 +182,16 @@
                 barWrapper.className = 'flex-1 bg-gray-200 rounded-lg overflow-hidden h-4 ml-4';
 
                 const barFill = document.createElement('div');
+                barFill.className = 'h-full rounded-lg transition-all duration-1000 ease-out';
+                barFill.style.width = '0%'; // Initial width set to 0%
+                // Apply Tailwind colors based on sentiment
+                if (sentiment === 'Positive') {
+                    barFill.classList.add('bg-green-500');
+                } else if (sentiment === 'Neutral') {
+                    barFill.classList.add('bg-yellow-500');
+                } else if (sentiment === 'Negative') {
+                    barFill.classList.add('bg-red-500');
+                }
                 barFill.className = `h-full rounded-lg transition-all duration-1000 ease-out ${
                     sentiment === 'Positive' ? 'bg-green-500' : sentiment === 'Neutral' ? 'bg-yellow-500' : 'bg-red-500'
                 }`;
@@ -168,6 +201,10 @@
                 bar.appendChild(label);
                 bar.appendChild(barWrapper);
                 barChartContainer.appendChild(bar);
+
+                setTimeout(() => {
+                    barFill.style.width = `${confidence[sentiment]}%`;
+                }, index * 200); // Stagger animation for each bar
             });
         }
     </script>
