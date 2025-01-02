@@ -4,8 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sentiment Analysis</title>
+    <title>Sentiment Analysis with Particles</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tsparticles@2.11.1/tsparticles.bundle.min.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -25,13 +26,18 @@
     </script>
 </head>
 
-<body class="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 min-h-screen flex items-center justify-center">
+<body class="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 min-h-screen flex items-center justify-center relative overflow-hidden">
+    <!-- Particle Background -->
+    <div id="tsparticles" class="absolute inset-0 -z-10"></div>
+
+    <!-- Main Content -->
     <div class="bg-white shadow-2xl rounded-lg w-full max-w-lg p-8 transform hover:scale-105 transition-transform duration-300">
         <h1 class="text-3xl font-bold text-center text-gray-800 mb-6 animate-fadeIn">Sentiment Analysis</h1>
         <form id="sentimentForm" class="space-y-6">
             <div>
                 <label for="language" class="block text-sm font-medium text-gray-700">Select Language</label>
-                <select id="language" name="language" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                <select id="language" name="language"
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                     <option value="en">English</option>
                     <option value="th">Thai</option>
                 </select>
@@ -53,15 +59,39 @@
             <h2 class="text-xl font-bold text-gray-700">Analysis Result:</h2>
             <p id="sentiment" class="text-lg mt-4 font-semibold"></p>
             <p id="confidence" class="text-sm mt-2 text-gray-600"></p>
-
-            <!-- Bar Chart Container -->
-            <div id="barChart" class="mt-6 space-y-2">
-                <!-- Bar chart bars will be dynamically added here -->
-            </div>
+            <div id="barChart" class="mt-6 space-y-2"></div>
         </div>
     </div>
 
+    <!-- Particle Animation -->
     <script>
+        window.onload = () => {
+            tsParticles.load("tsparticles", {
+                particles: {
+                    number: { value: 80, density: { enable: true, value_area: 800 } },
+                    color: { value: "#ffffff" },
+                    shape: { type: "circle" },
+                    opacity: { value: 0.5 },
+                    size: { value: 3, random: true },
+                    line_linked: { enable: true, distance: 150, color: "#ffffff", opacity: 0.4, width: 1 },
+                    move: { enable: true, speed: 2, direction: "none", out_mode: "out" }
+                },
+                interactivity: {
+                    detect_on: "canvas",
+                    events: {
+                        onhover: { enable: true, mode: "repulse" },
+                        onclick: { enable: true, mode: "push" },
+                        resize: true,
+                    },
+                    modes: {
+                        repulse: { distance: 100, duration: 0.4 },
+                        push: { particles_nb: 4 },
+                    }
+                },
+                retina_detect: true,
+            });
+        };
+
         const form = document.getElementById('sentimentForm');
         const resultDiv = document.getElementById('result');
         const sentimentText = document.getElementById('sentiment');
@@ -71,37 +101,19 @@
         const languageSelect = document.getElementById('language');
         const loadingSpinner = document.getElementById('loadingSpinner');
 
-        // Live character count
         textArea.addEventListener('input', () => {
             const length = textArea.value.length;
             charCount.textContent = `${length} / 500`;
-            if (length > 500) {
-                charCount.classList.add('text-red-500');
-            } else {
-                charCount.classList.remove('text-red-500');
-            }
-        });
-
-        textArea.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter' && !event.shiftKey) {
-                event.preventDefault();
-                form.requestSubmit(); // Trigger form submission
-            }
+            charCount.classList.toggle('text-red-500', length > 500);
         });
 
         form.addEventListener('submit', async (event) => {
             event.preventDefault();
-
             const text = textArea.value;
             const language = languageSelect.value;
 
-            if (!text) {
-                alert('Please enter some text.');
-                return;
-            }
-
-            if (text.length > 500) {
-                alert('Text exceeds the maximum limit of 500 characters.');
+            if (!text || text.length > 500) {
+                alert('Please enter valid text (max 500 characters).');
                 return;
             }
 
@@ -115,7 +127,6 @@
                 });
 
                 const result = await response.json();
-
                 if (response.ok) {
                     sentimentText.textContent = `Sentiment: ${result.sentiment}`;
                     confidenceText.textContent = `Confidence: Positive: ${result.confidence.Positive}% | Neutral: ${result.confidence.Neutral}% | Negative: ${result.confidence.Negative}%`;
@@ -133,43 +144,30 @@
 
         function renderBarChart(confidence) {
             const barChartContainer = document.getElementById('barChart');
-            barChartContainer.innerHTML = ''; // Clear any existing bars
-
-            // Create bars for Positive, Neutral, and Negative
+            barChartContainer.innerHTML = '';
             const sentiments = ['Positive', 'Neutral', 'Negative'];
+
             sentiments.forEach((sentiment, index) => {
                 const bar = document.createElement('div');
                 bar.className = 'flex items-center';
 
                 const label = document.createElement('span');
-                label.textContent = `${sentiment}`;
+                label.textContent = sentiment;
                 label.className = 'w-24 text-sm font-medium text-gray-700';
 
                 const barWrapper = document.createElement('div');
                 barWrapper.className = 'flex-1 bg-gray-200 rounded-lg overflow-hidden h-4 ml-4';
 
                 const barFill = document.createElement('div');
-                barFill.className = 'h-full rounded-lg transition-all duration-1000 ease-out';
-                barFill.style.width = '0%'; // Initial width set to 0%
-
-                // Apply Tailwind colors based on sentiment
-                if (sentiment === 'Positive') {
-                    barFill.classList.add('bg-green-500');
-                } else if (sentiment === 'Neutral') {
-                    barFill.classList.add('bg-yellow-500');
-                } else if (sentiment === 'Negative') {
-                    barFill.classList.add('bg-red-500');
-                }
+                barFill.className = `h-full rounded-lg transition-all duration-1000 ease-out ${
+                    sentiment === 'Positive' ? 'bg-green-500' : sentiment === 'Neutral' ? 'bg-yellow-500' : 'bg-red-500'
+                }`;
+                barFill.style.width = `${confidence[sentiment]}%`;
 
                 barWrapper.appendChild(barFill);
                 bar.appendChild(label);
                 bar.appendChild(barWrapper);
                 barChartContainer.appendChild(bar);
-
-                // Animate the bar filling after a slight delay
-                setTimeout(() => {
-                    barFill.style.width = `${confidence[sentiment]}%`;
-                }, index * 200); // Stagger animation for each bar
             });
         }
     </script>
