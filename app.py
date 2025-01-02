@@ -1,6 +1,5 @@
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
-import numpy as np
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from pythainlp.tokenize import word_tokenize
@@ -67,11 +66,11 @@ def analyze_sentiment(text, language):
             predictions = th_model.predict(input_sequence)
             prediction = predictions.argmax()
             confidence = {
-                "Negative": round(predictions[0][0] * 100, 2),
+                "Negative": round(predictions[0][2] * 100, 2),
                 "Neutral": round(predictions[0][1] * 100, 2),
-                "Positive": round(predictions[0][2] * 100, 2),
+                "Positive": round(predictions[0][0] * 100, 2),
             }
-            sentiment = ["Negative", "Neutral", "Positive"][prediction]
+            sentiment = ["Positive", "Neutral", "Negative"][prediction]
         else:
             return {"error": "Unsupported language"}
 

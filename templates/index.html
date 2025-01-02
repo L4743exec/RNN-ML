@@ -53,6 +53,11 @@
             <h2 class="text-xl font-bold text-gray-700">Analysis Result:</h2>
             <p id="sentiment" class="text-lg mt-4 font-semibold"></p>
             <p id="confidence" class="text-sm mt-2 text-gray-600"></p>
+
+            <!-- Bar Chart Container -->
+            <div id="barChart" class="mt-6 space-y-2">
+                <!-- Bar chart bars will be dynamically added here -->
+            </div>
         </div>
     </div>
 
@@ -74,6 +79,13 @@
                 charCount.classList.add('text-red-500');
             } else {
                 charCount.classList.remove('text-red-500');
+            }
+        });
+
+        textArea.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                form.requestSubmit(); // Trigger form submission
             }
         });
 
@@ -107,6 +119,7 @@
                 if (response.ok) {
                     sentimentText.textContent = `Sentiment: ${result.sentiment}`;
                     confidenceText.textContent = `Confidence: Positive: ${result.confidence.Positive}% | Neutral: ${result.confidence.Neutral}% | Negative: ${result.confidence.Negative}%`;
+                    renderBarChart(result.confidence);
                     resultDiv.classList.remove('hidden');
                 } else {
                     alert(result.error || 'Something went wrong!');
@@ -117,6 +130,48 @@
                 loadingSpinner.classList.add('hidden');
             }
         });
+
+        function renderBarChart(confidence) {
+            const barChartContainer = document.getElementById('barChart');
+            barChartContainer.innerHTML = ''; // Clear any existing bars
+
+            // Create bars for Positive, Neutral, and Negative
+            const sentiments = ['Positive', 'Neutral', 'Negative'];
+            sentiments.forEach((sentiment, index) => {
+                const bar = document.createElement('div');
+                bar.className = 'flex items-center';
+
+                const label = document.createElement('span');
+                label.textContent = `${sentiment}`;
+                label.className = 'w-24 text-sm font-medium text-gray-700';
+
+                const barWrapper = document.createElement('div');
+                barWrapper.className = 'flex-1 bg-gray-200 rounded-lg overflow-hidden h-4 ml-4';
+
+                const barFill = document.createElement('div');
+                barFill.className = 'h-full rounded-lg transition-all duration-1000 ease-out';
+                barFill.style.width = '0%'; // Initial width set to 0%
+
+                // Apply Tailwind colors based on sentiment
+                if (sentiment === 'Positive') {
+                    barFill.classList.add('bg-green-500');
+                } else if (sentiment === 'Neutral') {
+                    barFill.classList.add('bg-yellow-500');
+                } else if (sentiment === 'Negative') {
+                    barFill.classList.add('bg-red-500');
+                }
+
+                barWrapper.appendChild(barFill);
+                bar.appendChild(label);
+                bar.appendChild(barWrapper);
+                barChartContainer.appendChild(bar);
+
+                // Animate the bar filling after a slight delay
+                setTimeout(() => {
+                    barFill.style.width = `${confidence[sentiment]}%`;
+                }, index * 200); // Stagger animation for each bar
+            });
+        }
     </script>
 </body>
 
