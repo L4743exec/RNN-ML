@@ -22,7 +22,8 @@ try:
     th_model = load_model(r"models/th/model.keras")
     with open(r"models/th/tokenizer.pkl", "rb") as th_handle:
         th_tokenizer = pickle.load(th_handle)
-    th_word_index = th_tokenizer.word_index  # Use word_index for Thai preprocessing
+    # Use word_index for Thai preprocessing
+    th_word_index = th_tokenizer.word_index
 except Exception as e:
     raise RuntimeError(f"Error loading Thai model or tokenizer: {str(e)}")
 
@@ -33,7 +34,10 @@ MAX_LENGTH = 32
 def preprocess_english_text(text):
     try:
         tokenized_sentence = en_tokenizer.texts_to_sequences([text])
-        padded_sequence = pad_sequences(tokenized_sentence, maxlen=MAX_LENGTH, padding="pre")
+        print(text,":",tokenized_sentence)
+        padded_sequence = pad_sequences(
+            tokenized_sentence, maxlen=MAX_LENGTH, padding="pre")
+        print("padded_sequence :",padded_sequence)
         return padded_sequence
     except Exception as e:
         raise ValueError(f"Error in preprocessing English text: {str(e)}")
@@ -43,7 +47,8 @@ def preprocess_thai_text(text):
     try:
         tokens = word_tokenize(text, engine="newmm", keep_whitespace=False)
         sequence = [th_word_index.get(word, 0) for word in tokens]
-        padded_sequence = pad_sequences([sequence], maxlen=MAX_LENGTH, padding="post")
+        padded_sequence = pad_sequences(
+            [sequence], maxlen=MAX_LENGTH, padding="post")
         return padded_sequence
     except Exception as e:
         raise ValueError(f"Error in preprocessing Thai text: {str(e)}")
@@ -84,7 +89,8 @@ def analyze_sentiment(text, language):
 # Routes
 @app.route("/")
 def index():
-    return render_template("index.html")  # Adjust index.html to include language selection
+    # Adjust index.html to include language selection
+    return render_template("index.html")
 
 @app.route("/predict", methods=["POST"])
 def predict():
