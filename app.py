@@ -1,5 +1,8 @@
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
+from flask_wtf.csrf import CSRFProtect
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from pythainlp.tokenize import word_tokenize
@@ -7,7 +10,20 @@ import pickle
 
 # Initialize Flask app
 app = Flask(__name__)
+app.secret_key = "your_secret_key"  # จำเป็นสำหรับ CSRF
+
+# Enable CORS
 CORS(app)
+
+# Enable CSRF protection
+csrf = CSRFProtect(app)
+
+# Enable Rate Limiting
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    default_limits=["100 per minute"],  # สามารถปรับแต่ง rate limit ได้
+)
 
 # Load English model and tokenizer
 try:
@@ -36,6 +52,7 @@ def preprocess_english_text(text):
         tokenized_sentence = en_tokenizer.texts_to_sequences([text])
         padded_sequence = pad_sequences(
             tokenized_sentence, maxlen=MAX_LENGTH, padding="pre")
+        print(get_remote_address(),text, padded_sequence)
         return padded_sequence
     except Exception as e:
         raise ValueError(f"Error in preprocessing English text: {str(e)}")
@@ -47,6 +64,7 @@ def preprocess_thai_text(text):
         sequence = [th_word_index.get(word, 0) for word in tokens]
         padded_sequence = pad_sequences(
             [sequence], maxlen=MAX_LENGTH, padding="post")
+        print(text, padded_sequence)
         return padded_sequence
     except Exception as e:
         raise ValueError(f"Error in preprocessing Thai text: {str(e)}")
@@ -86,11 +104,14 @@ def analyze_sentiment(text, language):
 
 # Routes
 @app.route("/")
+@limiter.limit("10 per minute")  # Apply rate limit to this route
 def index():
     # Adjust index.html to include language selection
     return render_template("index.html")
 
 @app.route("/predict", methods=["POST"])
+@csrf.exempt  # Disable CSRF for this route if using external clients
+@limiter.limit("5 per second")  # Apply rate limit to /predict
 def predict():
     try:
         text = request.form.get("text", "")
