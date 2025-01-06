@@ -34,10 +34,8 @@ MAX_LENGTH = 32
 def preprocess_english_text(text):
     try:
         tokenized_sentence = en_tokenizer.texts_to_sequences([text])
-        print(text,":",tokenized_sentence)
         padded_sequence = pad_sequences(
             tokenized_sentence, maxlen=MAX_LENGTH, padding="pre")
-        print("padded_sequence :",padded_sequence)
         return padded_sequence
     except Exception as e:
         raise ValueError(f"Error in preprocessing English text: {str(e)}")
