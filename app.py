@@ -87,11 +87,11 @@ def analyze_sentiment(text, language):
             predictions = th_model.predict(input_sequence)
             prediction = predictions.argmax()
             confidence = {
-                "Negative": round(predictions[0][2] * 100, 2),
-                "Neutral": round(predictions[0][1] * 100, 2),
-                "Positive": round(predictions[0][0] * 100, 2),
+                "Negative": round(predictions[0][1] * 100, 2),
+                "Neutral": round(predictions[0][0] * 100, 2),
+                "Positive": round(predictions[0][2] * 100, 2),
             }
-            sentiment = ["Positive", "Neutral", "Negative"][prediction]
+            sentiment = ["Neutral", "Negative", "Positive"][prediction]
         else:
             return {"error": "Unsupported language"}
         # Determine sentiment
