@@ -3,3 +3,5 @@ flask
 pythainlp
 tensorflow
 pickle
+flask_wtf
+flas_limiter
